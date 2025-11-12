@@ -2,18 +2,11 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARカメラ</title>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-ar/dist/aframe-ar.min.js"></script>
-    
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
-        /* スタイルの初期化 */
         body { margin: 0; overflow: hidden; }
-        
-        /* UI要素の配置とz-indexの調整 */
-        
-        /* 1. 戻るボタンのスタイル */
         #backBtn {
             position: absolute;
             top: 10px;
@@ -24,236 +17,29 @@
             border-radius: 6px;
             text-decoration: none;
             font-size: 14px;
-            z-index: 1001;
-        }
-
-        /* 2. 撮影ボタンのスタイル */
-        #captureBtn {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background-color: red;
-            border: 5px solid rgba(255, 255, 255, 0.8);
-            cursor: pointer;
-            z-index: 1001;
-            /* 初期状態では非表示にし、カメラ準備後に表示する */
-            display: none; 
-        }
-
-        /* 3. ARシーンの調整 */
-        a-scene {
-            z-index: 1; 
-            position: absolute !important;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* 4. キャプチャ画像表示エリアのスタイル */
-        #capturedImageContainer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: black;
-            display: none; 
-            justify-content: center;
-            align-items: center;
-            z-index: 2000; /* 最前面 */
-        }
-        #capturedImage {
-            max-width: 90%;
-            max-height: 90%;
-            display: block;
-            border: 2px solid white;
-        }
-        #closeBtn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 2001;
-        }
-
-        /* ローディングインジケータースタイル（追加） */
-        #loadingOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #87CEEB; /* 水色 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            font-size: 20px;
-            z-index: 3000; /* 最前面 */
-        }
-        .loader {
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #3498db;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            z-index: 10; /* カメラの上にボタンが表示されるようにz-indexを設定 */
         }
     </style>
 </head>
 <body>
-    <div id="loadingOverlay">
-        <div class="loader"></div>
-        <p>カメラを準備中...</p>
-        <p style="font-size: 14px;">（カメラのアクセス許可を求められたら「許可」してください）</p>
-    </div>
-
     <a id="backBtn" href="index.html">← 戻る</a>
-
-    <button id="captureBtn" aria-label="写真を撮影"></button>
-
-    <div id="capturedImageContainer">
-        <img id="capturedImage" alt="撮影された写真" title="画像を長押し（または右クリック）で保存できます。">
-        <button id="closeBtn">閉じる</button>
-    </div>
-
-    <a-scene 
-        embedded 
-        arjs='sourceType: webcam; facingMode: environment;' 
-        loading-screen="enabled: false;"
-        >
+    <a-scene embedded arjs='sourceType: webcam; videoTextureParameters: { facingMode: environment, maxResolution: { width: 1280, height: 720 } };'>
         
         <a-assets>
             <a-asset-item id="blender-model" src="AR_test.glb"></a-asset-item>
         </a-assets>
 
         <a-marker type="pattern" url="pattern-marker.patt">
+            
             <a-entity
                 gltf-model="#blender-model"
                 position="0 0 0" 
                 rotation="0 0 0" 
                 scale="1 1 1">
             </a-entity>
-        </a-marker>
+            
+            </a-marker>
         <a-entity camera></a-entity>
     </a-scene>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const scene = document.querySelector('a-scene');
-            const captureBtn = document.getElementById('captureBtn');
-            const container = document.getElementById('capturedImageContainer');
-            const image = document.getElementById('capturedImage');
-            const closeBtn = document.getElementById('closeBtn');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-
-            let arReady = false; // ARが完全に準備できたかのフラグ
-
-            // A-Frame/AR.jsのシーンが初期化された後のイベントをリッスン
-            // 'arjs-original-contents-loaded' はAR.jsがカメラ映像を準備し、
-            // 3Dコンテンツのロードを開始した後に発火するイベント。
-            scene.addEventListener('arjs-original-contents-loaded', function() {
-                console.log('AR.js original contents loaded (camera video should be ready)');
-                // ここでビデオ要素が確実に存在することを確認
-                const video = document.querySelector('video');
-                if (video && video.readyState >= 2) { // videoが読み込まれた状態かチェック
-                    console.log('Video element is ready.');
-                    arReady = true;
-                    loadingOverlay.style.display = 'none'; // ローディング画面を非表示
-                    captureBtn.style.display = 'block'; // 撮影ボタンを表示
-
-                    // 念のため、AR.jsのビデオ背景が非表示になっていないか確認
-                    // A-FrameのARモードでは、video要素は通常自動的に表示される
-                    // video.style.display = 'block'; 
-                } else {
-                    console.warn('Video element not yet ready, retrying...');
-                    // もしビデオがまだ準備できていなければ、数秒後に再チェックするなどのロジックを追加することも可能
-                    // しかし、arjs-original-contents-loadedはビデオが準備できた後に発火するはずなので、基本的には不要
-                }
-            });
-
-            // Fallback: もしarjs-original-contents-loadedが発火しない場合や、ビデオが取得できない場合の対策
-            // A-Frameのloadedイベントもリッスンし、ビデオ要素を待つ
-            scene.addEventListener('loaded', function() {
-                // `loaded` イベントはA-Frameシーン自体がロードされた時に発火する。
-                // AR.jsのカメラ映像の準備とは異なるタイミングの可能性があるので、少し遅延を入れてチェック
-                setTimeout(() => {
-                    const video = document.querySelector('video');
-                    if (video && video.readyState >= 2 && !arReady) {
-                        console.log('A-Frame loaded, and video is ready (fallback).');
-                        arReady = true;
-                        loadingOverlay.style.display = 'none';
-                        captureBtn.style.display = 'block';
-                    } else if (!arReady) {
-                         console.warn('A-Frame loaded, but video not yet ready. Still waiting...');
-                    }
-                }, 2000); // 2秒遅延させてチェック
-            });
-
-
-            captureBtn.addEventListener('click', function() {
-                if (!arReady) {
-                    alert("カメラの準備がまだ完了していません。しばらくお待ちください。");
-                    return;
-                }
-
-                // AR.jsのビデオ要素と3D Canvasを取得
-                const video = document.querySelector('video');
-                const canvas3D = scene.canvas;
-                
-                // 念のため、最終チェック
-                if (!video || !canvas3D || video.readyState < 2) {
-                    console.error("Critical: Video or Canvas element not found or not ready at capture time.");
-                    alert("キャプチャに必要な要素が不足しています。ページをリロードして再度お試しください。");
-                    return;
-                }
-
-                // 1. 一時的な新しいCanvasを作成し、ビデオの本来の解像度で設定
-                const captureCanvas = document.createElement('canvas');
-                captureCanvas.width = video.videoWidth;
-                captureCanvas.height = video.videoHeight;
-                const ctx = captureCanvas.getContext('2d');
-
-                // 2. ビデオ映像を描画
-                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
-                
-                // 3. 3Dシーン（ARオブジェクト）をビデオの上に重ねて描画
-                ctx.drawImage(canvas3D, 0, 0, canvas3D.width, canvas3D.height, 0, 0, video.videoWidth, video.videoHeight);
-
-                // 4. データを取得
-                try {
-                    const dataURL = captureCanvas.toDataURL('image/png');
-                    // 5. 画像を表示
-                    image.src = dataURL;
-                    container.style.display = 'flex';
-                } catch (e) {
-                    console.error("Canvas export failed (likely cross-origin content):", e);
-                    alert("キャプチャに失敗しました。GLBファイルやマーカーパターンファイルが現在のGitHub Pagesと同じサーバーにあるか確認してください。");
-                }
-            });
-
-            // 閉じる処理
-            closeBtn.addEventListener('click', function() {
-                container.style.display = 'none';
-                image.src = '';
-            });
-        });
-    </script>
 </body>
 </html>
