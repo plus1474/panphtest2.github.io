@@ -19,28 +19,132 @@
             font-size: 14px;
             z-index: 10;
         }
+        
+        /* 1. 撮影ボタンのスタイル */
+        #captureBtn {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: red;
+            border: 5px solid rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* 2. キャプチャ画像表示エリアのスタイル */
+        #capturedImageContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            display: none; /* 初期状態では非表示 */
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+        #capturedImage {
+            max-width: 90%;
+            max-height: 90%;
+            display: block;
+            border: 2px solid white;
+        }
+        #closeBtn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <a id="backBtn" href="index.html">← 戻る</a>
 
-    <a-scene embedded arjs>
-        
-        <a-assets>
-            <a-asset-item id="blender-model" src="AR_test.glb"></a-asset-item>
-        </a-assets>
+    <button id="captureBtn" aria-label="写真を撮影"></button>
 
+    <div id="capturedImageContainer">
+        <img id="capturedImage" alt="撮影された写真" title="画像を長押し（または右クリック）で保存できます。">
+        <button id="closeBtn">閉じる</button>
+    </div>
+
+    <a-scene embedded arjs='sourceType: webcam; videoTextureParameters: { facingMode: environment, maxResolution: { width: 1280, height: 720 } };'>
+        <a-assets>
+            <a-asset-item id="blender-model" src="model.glb"></a-asset-item>
+        </a-assets>
         <a-marker type="pattern" url="pattern-marker.patt">
-            
             <a-entity
                 gltf-model="#blender-model"
                 position="0 0 0" 
                 rotation="0 0 0" 
                 scale="1 1 1">
             </a-entity>
-            
-            </a-marker>
+        </a-marker>
         <a-entity camera></a-entity>
     </a-scene>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const scene = document.querySelector('a-scene');
+            const captureBtn = document.getElementById('captureBtn');
+            const container = document.getElementById('capturedImageContainer');
+            const image = document.getElementById('capturedImage');
+            const closeBtn = document.getElementById('closeBtn');
+
+            captureBtn.addEventListener('click', function() {
+                // 1. AR.jsが使用しているビデオエレメントを取得
+                // A-Frameのシーン内にあるvideoタグを取得
+                const video = document.querySelector('a-scene video');
+
+                // 2. A-FrameのCanvasエレメントを取得
+                const canvas3D = scene.canvas;
+                
+                if (!video || !canvas3D) {
+                    console.error("Video or Canvas element not found.");
+                    return;
+                }
+
+                // 3. 一時的な新しいCanvasを作成し、ビデオと3Dシーンを重ねて描画する
+                const captureCanvas = document.createElement('canvas');
+                // AR.jsのビデオは、CSSで画面いっぱいに広げられていても、本来の解像度 (videoWidth/videoHeight) を使う
+                captureCanvas.width = video.videoWidth;
+                captureCanvas.height = video.videoHeight;
+                const ctx = captureCanvas.getContext('2d');
+
+                // a) ビデオ映像を描画
+                ctx.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+                
+                // b) 3Dシーン（ARオブジェクト）をビデオの上に重ねて描画
+                // AR.js/A-FrameのCanvasは、ビデオと同じ縦横比になるようCSSで調整されているため、
+                // 3D Canvasをビデオのサイズ全体に引き伸ばして描画するのが基本
+                ctx.drawImage(canvas3D, 0, 0, canvas3D.width, canvas3D.height, 0, 0, video.videoWidth, video.videoHeight);
+
+                // 4. データを取得
+                const dataURL = captureCanvas.toDataURL('image/png');
+
+                // 5. 画像を表示し、保存可能にする
+                image.src = dataURL;
+                container.style.display = 'flex';
+                
+                // 長押し/右クリックで保存を促すメッセージ
+                alert("写真を撮影しました！\n表示された画像を長押し（または右クリック）して「画像を保存」を選んでください。");
+            });
+
+            // 閉じる処理
+            closeBtn.addEventListener('click', function() {
+                container.style.display = 'none';
+                image.src = '';
+            });
+        });
+    </script>
 </body>
 </html>
