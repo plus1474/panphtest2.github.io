@@ -17,7 +17,7 @@ img {
 }
 
 /*==================================
-  グローバル設定
+  グローバル設定 (モバイルベース)
 ==================================*/
 
 body {
@@ -40,23 +40,16 @@ body {
 
 .hero-section {
   width: 100%;
-  
-  /* 固定ヘッダーの高さ分、コンテンツ全体を下にずらす */
   padding-top: 80px; 
   padding-bottom: 70px; 
-  
   display: flex;
   flex-direction: column;
-  align-items: flex-end; 
-  
-  /* 画面端から少し内側にするための余白 */
+  align-items: flex-end; /* タイトルは右寄せを維持 */
   padding-right: 24px; 
   padding-left: 24px; 
-
   background-color: #ffffff;
 }
 
-/* 画面上部に固定されるヘッダーの背景とメニューのコンテナ */
 .header-fixed-bg {
   position: fixed;
   top: 0;
@@ -64,17 +57,13 @@ body {
   width: 100%;
   height: 80px;
   z-index: 1000;
-  
-  /* ロゴとメニューを左右に配置するためのFlexbox */
   display: flex;
-  justify-content: space-between; /* ロゴとメニューを両端に寄せる */
-  align-items: center; /* 垂直方向中央 */
-  padding: 0 24px; /* 左右に余白を適用 */
-  
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 0 24px; 
   background-color: #ffffff;
 }
 
-/* ロゴコンテナとSVG画像のスタイル */
 .header-logo {
     display: flex; 
     height: 100%;
@@ -82,89 +71,77 @@ body {
 }
 
 .logo-svg {
-    height: 50px; /* ロゴの適切なサイズ */
+    height: 50px;
     width: auto;
 }
 
-/* --- ハンバーガーメニューの開閉に関するスタイル (ここから追加/修正) --- */
+/* --- ハンバーガーメニューの開閉に関するスタイル (モバイル用) --- */
 
-/* ハンバーガーメニューボタン */
 .hamburger-menu {
+  display: flex;
   background: none;
   border: none;
   cursor: pointer;
   padding: 10px;
-  display: flex;
   flex-direction: column;
   justify-content: space-around;
-  width: 50px; /* ハンバーガーメニューの幅 */
-  height: 50px; /* ハンバーガーメニューの高さ */
+  width: 50px; 
+  height: 50px; 
   z-index: 1001;
 }
 
-/* ハンバーガーの線 (HTMLにこの要素がなかったので、CSSで擬似的に作成) */
 .hamburger-menu::before,
 .hamburger-menu::after,
 .hamburger-menu span {
-  content: ''; /* before/after用 */
+  content: ''; 
   display: block;
   width: 100%;
   height: 3px;
-  background-color: #888888; /* グレー */
+  background-color: #888888; 
   border-radius: 2px;
-  transition: all 0.3s; /* 開閉アニメーション用 */
+  transition: all 0.3s; 
 }
 
-/* メニューリスト（ul）の初期設定 */
 .header-fixed-bg ul {
-    /* デフォルトでは非表示にし、絶対配置でヘッダーの下に広げる */
     display: none; 
     position: absolute;
-    top: 80px; /* header-fixed-bgの高さ (80px) の直下に配置 */
+    top: 80px; 
     left: 0;
     width: 100%;
-    
-    /* スタイルのリセットと調整 */
     list-style: none;
     margin: 0;
     padding: 0;
     text-align: center;
-    
-    background-color: #232323; /* メインコンテンツと同じ黒背景に設定 */
-    z-index: 999; /* ヘッダーの下、コンテンツの上に配置 */
+    background-color: #232323; 
+    z-index: 999; 
 }
 
-/* JavaScriptで付与される表示切り替え用のクラス */
 .header-fixed-bg ul.is-active {
     display: block;
 }
 
-/* リスト内のリンクのスタイル */
 .header-fixed-bg ul li a {
     display: block;
     padding: 15px 24px;
     text-decoration: none;
-    color: #ffffff; /* 白文字 */
-    font-size: 16px;
-    font-weight: 500;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* リンク間の薄い線 */
+    color: #ffffff; 
+    font-size: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
 }
 
 .header-fixed-bg ul li:last-child a {
     border-bottom: none;
 }
 
-/* --- ハンバーガーメニューの開閉に関するスタイル (ここまで追加/修正) --- */
-
-/* タイトル全体の上部余白と下部余白を設定 */
+/* タイトル全体 (モバイル) */
 .title-group {
-    padding-top: 420px; /* 上部からの余白 */
+    padding-top: 420px; 
     text-align: right; 
 }
 
 .subtitle {
   font-size: 18px;
-  font-weight: 400; 
+  font-weight: 200; 
   line-height: 1.4;
   margin-bottom: 10px;
   text-align: right;
@@ -190,12 +167,12 @@ body {
 
 .section {
   margin-bottom: 80px; 
-  text-align: center; 
+  text-align: left;
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: 700; 
+  font-size: 50px;
+  font-weight: 200; 
   margin-bottom: 40px;
 }
 
@@ -203,7 +180,6 @@ body {
 
 .outline-list {
   display: inline-block; 
-  text-align: left; 
 }
 
 .outline-list .list-item {
@@ -213,14 +189,37 @@ body {
 }
 
 .outline-list .term {
-  font-size: 18px; /* 拡大済み */
-  font-weight: 700; 
+  font-size: 18px; 
   width: 50px; 
   margin-right: 10px;
 }
 
-.outline-list .description {
-  font-weight: 400; 
+/*----------------- 挨拶 (ご挨拶) -----------------*/
+
+.section-greeting {
+  margin-bottom: 80px;
+}
+
+.greeting-box {
+  margin-bottom: 40px; 
+  max-width: 326px; 
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-greeting .greeting-box:last-child {
+  margin-bottom: 0;
+}
+
+.greeting-role {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.greeting-text {
+  font-size: 15px;
+  line-height: 30px; 
+  padding: 0;
 }
 
 /*----------------- 作品順 -----------------*/
@@ -234,10 +233,8 @@ body {
   padding: 0;
   margin: 0;
   font-size: 15px;
-  font-weight: 400; 
   line-height: 30px;
   display: inline-block; 
-  text-align: left;
 }
 
 .program-part {
@@ -245,8 +242,7 @@ body {
 }
 
 .part-title {
-  font-size: 18px; /* 拡大済み */
-  font-weight: 700; 
+  font-size: 18px; 
   line-height: 30px;
   margin-bottom: 15px;
 }
@@ -270,12 +266,10 @@ body {
 
 .feedback-text {
   font-size: 15px;
-  font-weight: 400; 
   line-height: 30px;
 }
 
 .feedback-link {
-  font-weight: 400; 
   color: #ffffff; 
   text-decoration: underline;
 }
@@ -284,12 +278,10 @@ body {
 
 .access-text {
   font-size: 9px;
-  font-weight: 400; 
   line-height: 18px;
   max-width: 326px; 
   margin-left: auto;
   margin-right: auto;
-  text-align: left; 
 }
 
 
@@ -309,7 +301,168 @@ body {
 
 .copyright {
   font-family: "Noto Sans JP", sans-serif;
-  font-weight: 400;
   font-size: 9px;
   line-height: 18px;
+}
+
+/*==================================
+  PC (デスクトップ) 対応スタイル
+  画面幅 768px 以上で適用
+==================================*/
+@media (min-width: 768px) {
+    
+    /*--- グローバル設定 ---*/
+    .hero-section, .header-fixed-bg, .main-content {
+        /* PCでは左右の余白を大きくする */
+        padding-left: 80px; /* 調整 */
+        padding-right: 80px; /* 調整 */
+    }
+    .header-fixed-bg {
+        padding: 0 80px;
+    }
+    .main-content {
+        padding: 100px 80px 150px; /* PC用のメインコンテンツパディングを大きく */
+    }
+
+    /*--- ヘッダー/ナビゲーション ---*/
+    
+    .hamburger-menu {
+        display: none; 
+    }
+    
+    /* ナビゲーションを常時表示し、右寄せを維持 */
+    .header-fixed-bg ul {
+        display: flex; 
+        position: static; 
+        width: auto;
+        background-color: transparent; 
+        z-index: auto;
+    }
+    .header-fixed-bg ul {
+        /* PCではリンクを右寄せにするため、Flexboxの親要素に調整 */
+        margin-left: auto;
+    }
+
+    .header-fixed-bg ul li {
+        margin-left: 30px; /* リンク間のスペースを大きく */
+    }
+
+    .header-fixed-bg ul li a {
+        padding: 0; 
+        color: #000000; /* 黒文字 */
+        font-size: 16px; /* サイズ調整 */
+        border-bottom: none;
+    }
+
+    /*--- タイトル ---*/
+    .title-group {
+        padding-top: 250px; /* PCでは上部余白を調整 */
+        max-width: 1000px; /* 最大幅を設定 */
+        margin-left: auto; 
+        margin-right: auto;
+    }
+    /* 中央揃えの要請ですが、タイトルは右寄せのデザインを活かすため、ここでは右寄せを維持します。
+       完全に中央にしたい場合は、`.title-group`の`text-align: center;`と`align-items: center;`が必要です。 */
+
+    .subtitle {
+        font-size: 22px;
+    }
+
+    .main-title {
+        font-size: 100px; /* サイズを大きく */
+    }
+
+    /*--- セクション全般 ---*/
+    .section {
+        margin-bottom: 150px;
+        max-width: 800px; /* コンテンツの幅を制限 */
+        margin-left: auto; 
+        margin-right: auto;
+        text-align: center; /* 中央揃え */
+    }
+    .section-title {
+        font-size: 72px; /* サイズを大きく */
+        margin-bottom: 80px;
+    }
+
+    /*--- 概要 ---*/
+    /* 縦並びを維持するため、gridやflexの横並び設定は行わない */
+    .outline-list .list-item {
+        font-size: 16px;
+    }
+    .outline-list .term {
+        font-size: 20px; /* PCでの強調 */
+        width: 80px; 
+    }
+    .outline-list .description {
+        font-size: 16px;
+    }
+
+    /*--- 挨拶 ---*/
+    .section-greeting {
+        /* 縦並びを維持するため、flexの横並び設定を解除 */
+        display: block; 
+        margin-bottom: 150px;
+    }
+    .greeting-box {
+        max-width: 100%; /* 横幅の制限を解除 */
+        margin-bottom: 60px; /* 挨拶間の余白を大きく */
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .greeting-role {
+        font-size: 20px;
+    }
+    .greeting-text {
+        font-size: 16px;
+    }
+
+    /*--- 作品順 ---*/
+    .program-part {
+        margin-bottom: 60px;
+    }
+    .program-list {
+        /* 縦並びを維持 */
+        font-size: 16px;
+    }
+    .part-title {
+        font-size: 22px; 
+        margin-bottom: 25px;
+    }
+    .program-list li {
+        line-height: 36px;
+    }
+    .program-list li:before {
+        margin-right: 10px;
+    }
+
+    .break-time {
+        font-size: 18px;
+        margin: 80px 0;
+    }
+
+    /*--- モニターシート ---*/
+    .feedback-text {
+        font-size: 16px;
+    }
+    .feedback-link {
+        font-size: 20px;
+        line-height: 40px;
+    }
+
+    /*--- 会場アクセス ---*/
+    .access-text {
+        max-width: 400px; /* PCでも幅を制限 */
+        font-size: 12px;
+        line-height: 24px;
+        text-align: center; /* 中央揃えに変更 */
+    }
+    
+    /*--- フッター ---*/
+    .site-footer {
+        height: 100px;
+    }
+    .copyright {
+        font-size: 12px;
+    }
 }
