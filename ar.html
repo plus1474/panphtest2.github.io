@@ -71,39 +71,32 @@
 
     <script>
         /**
-         * 画像を中心に合わせて切り抜き描画する関数（CSSのobject-fit: cover相当）
-         * @param {CanvasImageSource} source - 描画元（ビデオやキャンバス）
-         * @param {CanvasRenderingContext2D} ctx - 描画先のコンテキスト
-         * @param {number} dw - 描画先の幅
-         * @param {number} dh - 描画先の高さ
+         * 画像を中心に合わせて切り抜き描画する関数
+         * 背景(ビデオ)も前景(3D)も全く同じロジックで処理することでズレを防ぐ
          */
         function drawSmartCrop(source, ctx, dw, dh) {
-            // ソースのサイズ（videoWidth等のプロパティがない場合はwidthを使う）
             const sw = source.videoWidth || source.width;
             const sh = source.videoHeight || source.height;
 
-            // アスペクト比の計算
             const sourceAspect = sw / sh;
             const destAspect = dw / dh;
 
             let renderW, renderH, renderX, renderY;
 
-            // 描画サイズと位置を計算（中央切り抜き）
             if (sourceAspect > destAspect) {
-                // ソースの方が横長 → 縦に合わせて左右をカット
+                // ソースが横長 → 縦に合わせて左右カット
                 renderH = dh;
                 renderW = dh * sourceAspect;
                 renderX = (dw - renderW) / 2;
                 renderY = 0;
             } else {
-                // ソースの方が縦長（または同じ） → 横に合わせて上下をカット
+                // ソースが縦長 → 横に合わせて上下カット
                 renderW = dw;
                 renderH = dw / sourceAspect;
                 renderX = 0;
                 renderY = (dh - renderH) / 2;
             }
 
-            // 描画実行
             ctx.drawImage(source, 0, 0, sw, sh, renderX, renderY, renderW, renderH);
         }
 
@@ -111,11 +104,8 @@
             const scene = document.querySelector("a-scene");
             const video = document.querySelector("video");
             
-            // 1. 高画質用の解像度設定
-            // devicePixelRatioを取得（一般的なスマホなら2〜3）
+            // 1. 保存サイズの決定（高画質化）
             const pixelRatio = window.devicePixelRatio || 1;
-            
-            // 画面サイズ × 画素密度 でキャンバスサイズを決定
             const width = window.innerWidth * pixelRatio;
             const height = window.innerHeight * pixelRatio;
 
@@ -124,25 +114,25 @@
             mergeCanvas.height = height;
             const ctx = mergeCanvas.getContext("2d");
 
-            // 画像補完を高品質に設定
+            // 画質設定
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
 
-            // 2. 背景（カメラ映像）の描画
-            // drawSmartCrop関数を使って、歪みなく中央を切り抜いて描画
+            // 2. 背景（カメラ映像）を描画
             if (video && video.videoWidth > 0) {
                 drawSmartCrop(video, ctx, width, height);
             }
 
-            // 3. 3Dモデル（A-Frameキャンバス）の描画
-            // 重要：3Dモデルもカメラ映像と同じロジックで切り抜くことで、位置ズレと歪みを防ぐ
-            const aCanvas = scene.components.screenshot.getCanvas("perspective");
-            drawSmartCrop(aCanvas, ctx, width, height);
+            // 3. 前景（3Dモデル）を描画
+            // 【重要修正】 screenshot.getCanvas() ではなく、
+            // 現在表示されている生のキャンバス (scene.renderer.domElement) を使用します。
+            // これにより、画面上の見た目とアスペクト比が完全に一致します。
+            const webglCanvas = scene.renderer.domElement;
+            drawSmartCrop(webglCanvas, ctx, width, height);
 
-            // 4. ダウンロード処理
+            // 4. ダウンロード
             const link = document.createElement("a");
             const date = new Date();
-            // ファイル名整形
             const timestamp = date.getFullYear() +
                              ('0' + (date.getMonth() + 1)).slice(-2) +
                              ('0' + date.getDate()).slice(-2) + '-' +
@@ -151,7 +141,7 @@
                              ('0' + date.getSeconds()).slice(-2);
                              
             link.download = `ar-photo-${timestamp}.png`;
-            link.href = mergeCanvas.toDataURL("image/png", 1.0); // 品質MAX
+            link.href = mergeCanvas.toDataURL("image/png", 1.0);
             
             document.body.appendChild(link);
             link.click();
