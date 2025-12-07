@@ -2,13 +2,18 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ARカメラ</title>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { margin: 0; overflow: hidden; }
         
+        /* VRボタンを非表示にする追記 */
+        .a-enter-vr {
+            display: none !important;
+        }
+
         /* シャッターボタンのスタイル */
         .ui-container {
             position: fixed;
@@ -31,6 +36,8 @@
             cursor: pointer;
             pointer-events: auto;
             transition: transform 0.1s;
+            /* タップ時の青いハイライトを消す */
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
 
         #snap-button:active {
@@ -46,8 +53,8 @@
 
     <a-scene 
         embedded 
-        arjs='sourceType: webcam; videoTextureParameters: { facingMode: environment, maxResolution: { width: 1170, height: 2572 } };'
-        renderer="preserveDrawingBuffer: true;">
+        arjs='sourceType: webcam; videoTextureParameters: { facingMode: environment };'
+        renderer="preserveDrawingBuffer: true; antialias: true; alpha: true">
         
         <a-assets>
             <a-asset-item id="blender-model" src="AR_test.glb"></a-asset-item>
@@ -70,38 +77,61 @@
             const scene = document.querySelector("a-scene");
             const video = document.querySelector("video");
             
-            // 1. 合成用のキャンバスを作成
+            // 1. 合成用のキャンバスを作成（サイズは現在の画面サイズ）
+            const width = window.innerWidth;
+            const height = window.innerHeight;
             const mergeCanvas = document.createElement("canvas");
-            // ★ここを変更：キャンバスサイズを現在のウィンドウ（画面）サイズに設定
-            mergeCanvas.width = window.innerWidth;
-            mergeCanvas.height = window.innerHeight;
+            mergeCanvas.width = width;
+            mergeCanvas.height = height;
             const ctx = mergeCanvas.getContext("2d");
-    
-            // 2. A-Frameのキャンバスを取得
-            const aCanvas = scene.components.screenshot.getCanvas("perspective");
-            
-            // 3. 背景（カメラ映像）を描画
-            if (video) {
-                // ビデオ映像をキャンバスサイズに合わせて描画
-                // （画面アスペクト比によっては多少歪む可能性がありますが、まずはこれで試します）
-                ctx.drawImage(video, 0, 0, mergeCanvas.width, mergeCanvas.height);
+
+            // --- 背景（カメラ映像）の描画処理 ---
+            if (video && video.videoWidth > 0) {
+                // ビデオ元のサイズ
+                const vw = video.videoWidth;
+                const vh = video.videoHeight;
+                
+                // 比率を計算
+                const videoAspect = vw / vh;
+                const screenAspect = width / height;
+
+                // 切り抜く範囲の計算用変数
+                let sx = 0, sy = 0, sWidth = vw, sHeight = vh;
+
+                if (screenAspect < videoAspect) {
+                    // 画面の方が細長い場合（スマホ縦持ちなど）：左右をカット
+                    sWidth = vh * screenAspect; // 高さに合わせて新しい幅を計算
+                    sx = (vw - sWidth) / 2;     // 中央寄せのための開始X座標
+                } else {
+                    // 画面の方が横長の場合（PCなど）：上下をカット
+                    sHeight = vw / screenAspect; // 幅に合わせて新しい高さを計算
+                    sy = (vh - sHeight) / 2;     // 中央寄せのための開始Y座標
+                }
+
+                // 計算した範囲でビデオを切り抜いて描画
+                // drawImage(元画像, 切り抜きX, 切り抜きY, 切り抜き幅, 切り抜き高さ, 描画X, 描画Y, 描画幅, 描画高さ)
+                ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, width, height);
             }
-    
-            // 4. 前景（3Dモデル）を描画
-            // ★ここを変更：A-Frameのキャンバスを、合成キャンバスのサイズに合わせて描画（引き伸ばし）
-            // drawImage(元画像, 元の切り取りX, 元の切り取りY, 元の幅, 元の高さ, 描画先X, 描画先Y, 描画先幅, 描画先高さ)
-            ctx.drawImage(
-                aCanvas, 
-                0, 0, aCanvas.width, aCanvas.height, // 元画像の全領域を指定
-                0, 0, mergeCanvas.width, mergeCanvas.height // 描画先の全領域を指定
-            );
-    
-            // 5. ダウンロード処理（ここはそのまま）
+
+            // --- 前景（3Dモデル）の描画処理 ---
+            const aCanvas = scene.components.screenshot.getCanvas("perspective");
+            // 3Dモデルは既に画面視点でレンダリングされているため、そのまま画面サイズに引き伸ばして重ねる
+            ctx.drawImage(aCanvas, 0, 0, aCanvas.width, aCanvas.height, 0, 0, width, height);
+
+            // --- ダウンロード処理 ---
             const link = document.createElement("a");
-            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+            // ファイル名にタイムスタンプを付与
+            const date = new Date();
+            const timestamp = date.getFullYear() +
+                             ('0' + (date.getMonth() + 1)).slice(-2) +
+                             ('0' + date.getDate()).slice(-2) + '-' +
+                             ('0' + date.getHours()).slice(-2) +
+                             ('0' + date.getMinutes()).slice(-2) +
+                             ('0' + date.getSeconds()).slice(-2);
             link.download = `ar-photo-${timestamp}.png`;
             link.href = mergeCanvas.toDataURL("image/png");
             
+            // iOSなどでのダウンロード対応
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
