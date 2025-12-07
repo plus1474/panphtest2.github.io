@@ -72,7 +72,6 @@
     <script>
         /**
          * 画像を中心に合わせて切り抜き描画する関数
-         * 背景(ビデオ)も前景(3D)も全く同じロジックで処理することでズレを防ぐ
          */
         function drawSmartCrop(source, ctx, dw, dh) {
             const sw = source.videoWidth || source.width;
@@ -84,13 +83,13 @@
             let renderW, renderH, renderX, renderY;
 
             if (sourceAspect > destAspect) {
-                // ソースが横長 → 縦に合わせて左右カット
+                // ソースが横長
                 renderH = dh;
                 renderW = dh * sourceAspect;
                 renderX = (dw - renderW) / 2;
                 renderY = 0;
             } else {
-                // ソースが縦長 → 横に合わせて上下カット
+                // ソースが縦長
                 renderW = dw;
                 renderH = dw / sourceAspect;
                 renderX = 0;
@@ -118,15 +117,21 @@
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
 
+            // --- ここが今回の修正点 ---
+            // 撮影の瞬間に、強制的に3Dシーンをレンダリング（描画）させます。
+            // これによりキャンバスが透明になるのを防ぎます。
+            if (scene.renderer && scene.camera && scene.object3D) {
+                scene.renderer.render(scene.object3D, scene.camera);
+            }
+            // ------------------------
+
             // 2. 背景（カメラ映像）を描画
             if (video && video.videoWidth > 0) {
                 drawSmartCrop(video, ctx, width, height);
             }
 
             // 3. 前景（3Dモデル）を描画
-            // 【重要修正】 screenshot.getCanvas() ではなく、
-            // 現在表示されている生のキャンバス (scene.renderer.domElement) を使用します。
-            // これにより、画面上の見た目とアスペクト比が完全に一致します。
+            // 強制レンダリング直後の生のキャンバスを取得
             const webglCanvas = scene.renderer.domElement;
             drawSmartCrop(webglCanvas, ctx, width, height);
 
