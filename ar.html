@@ -70,20 +70,33 @@
             const scene = document.querySelector("a-scene");
             const video = document.querySelector("video");
             
+            // 1. 合成用のキャンバスを作成
             const mergeCanvas = document.createElement("canvas");
+            // ★ここを変更：キャンバスサイズを現在のウィンドウ（画面）サイズに設定
+            mergeCanvas.width = window.innerWidth;
+            mergeCanvas.height = window.innerHeight;
             const ctx = mergeCanvas.getContext("2d");
-
+    
+            // 2. A-Frameのキャンバスを取得
             const aCanvas = scene.components.screenshot.getCanvas("perspective");
             
-            mergeCanvas.width = aCanvas.width;
-            mergeCanvas.height = aCanvas.height;
-
+            // 3. 背景（カメラ映像）を描画
             if (video) {
+                // ビデオ映像をキャンバスサイズに合わせて描画
+                // （画面アスペクト比によっては多少歪む可能性がありますが、まずはこれで試します）
                 ctx.drawImage(video, 0, 0, mergeCanvas.width, mergeCanvas.height);
             }
-
-            ctx.drawImage(aCanvas, 0, 0);
-
+    
+            // 4. 前景（3Dモデル）を描画
+            // ★ここを変更：A-Frameのキャンバスを、合成キャンバスのサイズに合わせて描画（引き伸ばし）
+            // drawImage(元画像, 元の切り取りX, 元の切り取りY, 元の幅, 元の高さ, 描画先X, 描画先Y, 描画先幅, 描画先高さ)
+            ctx.drawImage(
+                aCanvas, 
+                0, 0, aCanvas.width, aCanvas.height, // 元画像の全領域を指定
+                0, 0, mergeCanvas.width, mergeCanvas.height // 描画先の全領域を指定
+            );
+    
+            // 5. ダウンロード処理（ここはそのまま）
             const link = document.createElement("a");
             const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
             link.download = `ar-photo-${timestamp}.png`;
