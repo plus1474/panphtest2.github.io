@@ -16,6 +16,11 @@ img {
   height: auto;
 }
 
+/* ページ内移動をスムーズにスクロール */
+html {
+  scroll-behavior: smooth;
+}
+
 /*==================================
   グローバル設定 (モバイルベース)
 ==================================*/
@@ -23,7 +28,6 @@ img {
 body {
   font-family: 'Noto Sans JP', sans-serif;
   color: #000000;
-  min-width: 390px; 
   background-color: #FFFFFF; 
 }
 
@@ -65,9 +69,9 @@ body {
 }
 
 .header-logo {
-    display: flex; 
-    height: 100%;
-    align-items: center;
+  display: flex; 
+  height: 100%;
+  align-items: center;
 }
 
 .logo-svg {
@@ -168,11 +172,12 @@ body {
 .section {
   margin-bottom: 80px; 
   text-align: left;
+  scroll-margin-top: 90px; /* 90px ずらして移動させる */
 }
 
 .section-title {
   font-size: 50px;
-  font-weight: 200; 
+  font-weight: 400; 
   margin-bottom: 40px;
 }
 
