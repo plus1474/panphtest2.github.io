@@ -1,1 +1,9 @@
-# panphtest2.github.io
+# 「＊ＷＡＶＥ＊」公式サイト（制作中）
+
+## 概要
+法政大学放送研究会MediaWave 21期引退番組発表会「＊ＷＡＶＥ＊」公式サイトです。
+
+番組発表会の詳細を確認することが可能です。また、パンフレットを使用するとARカメラを使った写真撮影ができます。
+
+## パンフレット
+パンフレットのサンプルは [こちら](https://drive.google.com/file/d/1c6loz0akj3_F63nvEIw9I2RAM2P1yZuo/view?usp=drive_link) からダウンロード可能です。
